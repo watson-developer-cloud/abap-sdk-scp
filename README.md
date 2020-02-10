@@ -12,7 +12,7 @@ Additionally, as the ABAP SDK is a community release it is not updated with the 
 | tested on SAP ECC and SAP S/4HANA |  |
 |  | `this repository` |
 
-**Note:** The ABAP SDK can run in the SAP Cloud Platform ABAP Environment, but not yet in an SCP ABAP Trial Environment. The documentation will be updated, when the SCP ABAP Trial Environment also supports the ABAP SDK.
+**Note:**  The ABAP SDK is available and will run in the SAP Cloud Platform ABAP Environment. However, at time of release, the SCP ABAP Env Trial has not been upgraded, therefore will not work at this time. The documentation will be updated, when the SCP ABAP Env Trial has been upgraded.
 
 ---
 
