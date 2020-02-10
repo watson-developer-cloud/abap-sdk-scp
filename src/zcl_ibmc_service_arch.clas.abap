@@ -1,0 +1,368 @@
+* Copyright 2019,2020 IBM Corp. All Rights Reserved.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+CLASS zcl_ibmc_service_arch DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    INTERFACES zif_ibmc_service_arch .
+
+    TYPES to_http_client TYPE REF TO if_web_http_client .
+    TYPES to_rest_request TYPE REF TO if_web_http_request .
+    TYPES to_rest_response TYPE REF TO if_web_http_response .
+    TYPES to_form_part TYPE REF TO if_web_http_request .
+    TYPES:
+      BEGIN OF ts_client,
+        http    TYPE to_http_client,
+        request TYPE to_rest_request,
+      END OF ts_client .
+    TYPES:
+      BEGIN OF ts_http_stat,
+        code   TYPE i,
+        reason TYPE string,
+      END OF ts_http_stat .
+    TYPES:
+      BEGIN OF ts_http_status,
+        code   TYPE n LENGTH 3,
+        reason TYPE string,
+        json   TYPE string,
+      END OF ts_http_status .
+    TYPES ts_header TYPE zif_ibmc_service_arch~ts_header .
+    TYPES tt_header TYPE zif_ibmc_service_arch~tt_header .
+    TYPES ts_url TYPE zif_ibmc_service_arch~ts_url .
+    TYPES ts_access_token TYPE zif_ibmc_service_arch~ts_access_token .
+    TYPES ts_request_prop TYPE zif_ibmc_service_arch~ts_request_prop .
+
+    CLASS-METHODS get_timezone
+      RETURNING
+        VALUE(e_timezone) TYPE zif_ibmc_service_arch~ty_timezone .
+    CLASS-METHODS get_progname
+      RETURNING
+        VALUE(e_progname) TYPE string .
+    CLASS-METHODS base64_decode
+      IMPORTING
+        !i_base64       TYPE string
+      RETURNING
+        VALUE(e_binary) TYPE xstring
+      RAISING
+        zcx_ibmc_service_exception .
+    CLASS-METHODS create_client_by_url
+      IMPORTING
+        !i_url          TYPE string
+        !i_request_prop TYPE ts_request_prop
+      EXPORTING
+        !e_client       TYPE ts_client
+      RAISING
+        zcx_ibmc_service_exception .
+    CLASS-METHODS get_default_proxy
+      IMPORTING
+        !i_url        TYPE ts_url OPTIONAL
+      EXPORTING
+        !e_proxy_host TYPE string
+        !e_proxy_port TYPE string .
+    CLASS-METHODS set_authentication_basic
+      IMPORTING
+        !i_client   TYPE ts_client
+        !i_username TYPE string
+        !i_password TYPE string .
+    CLASS-METHODS set_request_header
+      IMPORTING
+        !i_client TYPE ts_client
+        !i_name   TYPE string
+        !i_value  TYPE string .
+    CLASS-METHODS set_request_uri
+      IMPORTING
+        !i_client TYPE ts_client
+        !i_uri    TYPE string .
+    METHODS add_form_part
+      IMPORTING
+        !i_client     TYPE ts_client
+        !it_form_part TYPE zif_ibmc_service_arch~tt_form_part
+      RAISING
+        zcx_ibmc_service_exception .
+    CLASS-METHODS execute
+      IMPORTING
+        !i_client         TYPE ts_client
+        !i_method         TYPE zif_ibmc_service_arch~char
+      RETURNING
+        VALUE(e_response) TYPE to_rest_response
+      RAISING
+        zcx_ibmc_service_exception .
+    CLASS-METHODS get_response_string
+      IMPORTING
+        !i_response   TYPE REF TO if_web_http_response
+      RETURNING
+        VALUE(e_data) TYPE string .
+    CLASS-METHODS set_request_body_cdata
+      IMPORTING
+        !i_client TYPE ts_client
+        !i_data   TYPE string .
+    CLASS-METHODS set_request_body_xdata
+      IMPORTING
+        !i_client TYPE ts_client
+        !i_data   TYPE xstring .
+    CLASS-METHODS get_response_binary
+      IMPORTING
+        !i_response   TYPE REF TO if_web_http_response
+      RETURNING
+        VALUE(e_data) TYPE xstring .
+    CLASS-METHODS get_http_status
+      IMPORTING
+        !i_rest_response TYPE REF TO if_web_http_response
+      RETURNING
+        VALUE(e_status)  TYPE ts_http_status .
+    CLASS-METHODS convert_string_to_utf8
+      IMPORTING
+        !i_string     TYPE string
+      RETURNING
+        VALUE(e_utf8) TYPE xstring
+      RAISING
+        zcx_ibmc_service_exception .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+
+CLASS zcl_ibmc_service_arch IMPLEMENTATION.
+
+
+  METHOD base64_decode.
+
+    e_binary = cl_web_http_utility=>decode_x_base64( i_base64 ).
+
+*    if sy-subrc <> 0.
+*      zcl_ibmc_service=>raise_exception( i_msgno = '030' ).  " Decoding of base64 string failed
+*    endif.
+
+  ENDMETHOD.
+
+
+  METHOD convert_string_to_utf8.
+
+    CALL METHOD cl_web_http_utility=>encode_utf8
+      EXPORTING
+        unencoded = i_string
+      RECEIVING
+        encoded   = e_utf8
+      EXCEPTIONS
+        OTHERS    = 1.
+    IF sy-subrc <> 0.
+      zcl_ibmc_service=>raise_exception( i_text = 'Cannot convert string to UTF-8' )  ##NO_TEXT.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD create_client_by_url.
+
+    DATA:
+      lv_text TYPE string.
+
+    TRY.
+        "create http destination by url
+        DATA(lo_http_destination) =
+         cl_http_destination_provider=>create_by_url( i_url ).
+      CATCH cx_http_dest_provider_error.
+    ENDTRY.
+
+    "create HTTP client by destination
+    TRY.
+        e_client-http = cl_web_http_client_manager=>create_by_http_destination( lo_http_destination ) .
+      CATCH cx_web_http_client_error.
+        lv_text = `HTTP client cannot be created: ` && lv_text  ##NO_TEXT.
+        zcl_ibmc_service=>raise_exception( i_text = lv_text ).
+    ENDTRY.
+
+    e_client-request = e_client-http->get_http_request( ).
+
+  ENDMETHOD.
+
+
+  METHOD execute.
+
+    DATA:
+      lo_request   TYPE REF TO if_web_http_request,
+      lv_method    TYPE string,
+      lv_text      TYPE string,
+      lo_exception TYPE REF TO cx_web_http_client_error.
+
+    TRY.
+        CASE i_method.
+          WHEN zif_ibmc_service_arch~c_method_get.
+            lv_method = 'GET'.
+            e_response = i_client-http->execute( if_web_http_client=>get ).
+          WHEN zif_ibmc_service_arch~c_method_post.
+            lv_method = 'POST'.
+            e_response = i_client-http->execute( if_web_http_client=>post ).
+          WHEN zif_ibmc_service_arch~c_method_put.
+            lv_method = 'PUT'.
+            e_response = i_client-http->execute( if_web_http_client=>put ).
+          WHEN zif_ibmc_service_arch~c_method_delete.
+            lv_method = 'DELETE'.
+            e_response = i_client-http->execute( if_web_http_client=>delete ).
+        ENDCASE.
+
+      CATCH cx_web_http_client_error INTO lo_exception.
+        lv_text = lo_exception->get_text( ).
+        lv_text = `HTTP ` && lv_method && ` request failed: ` && lv_text  ##NO_TEXT.
+        zcl_ibmc_service=>raise_exception( i_text = lv_text i_previous = lo_exception ).
+    ENDTRY.
+
+
+  ENDMETHOD.
+
+
+  METHOD add_form_part.
+
+    CONSTANTS:
+      lc_boundary TYPE string VALUE `--------------------------f530e26f981510ab`  ##NO_TEXT.
+
+    DATA:
+      ls_form_part TYPE zif_ibmc_service_arch~ts_form_part,
+      lx_data      TYPE xstring,
+      lv_header    TYPE string,
+      lx_header    TYPE xstring,
+      lx_body      TYPE xstring,
+      lx_crlf      TYPE xstring VALUE '0D0A',
+      lx_dash2     TYPE xstring VALUE '2D2D'.
+
+    DATA(lx_boundary) = convert_string_to_utf8( lc_boundary ).
+
+    lx_body = lx_crlf.
+
+    LOOP AT it_form_part INTO ls_form_part.
+
+      lx_body = lx_body && lx_dash2 && lx_boundary && lx_crlf.
+
+      IF NOT ls_form_part-content_type IS INITIAL.
+        lv_header = `Content-Type: ` && ls_form_part-content_type.
+        lx_header = convert_string_to_utf8( lv_header ).
+        lx_body = lx_body && lx_header && lx_crlf.
+      ENDIF.
+      IF NOT ls_form_part-content_disposition IS INITIAL.
+        lv_header = `Content-Disposition: ` && ls_form_part-content_disposition  ##NO_TEXT.
+      ELSE.
+        lv_header = `Content-Disposition: form-data; name="unnamed"`  ##NO_TEXT.
+      ENDIF.
+      lx_header = convert_string_to_utf8( lv_header ).
+      lx_body = lx_body && lx_header && lx_crlf && lx_crlf.
+      IF NOT ls_form_part-xdata IS INITIAL.
+        lx_body = lx_body && ls_form_part-xdata && lx_crlf.
+        DATA(lc_data) = cl_web_http_utility=>encode_x_base64( unencoded = ls_form_part-xdata ).
+      ENDIF.
+      IF NOT ls_form_part-cdata IS INITIAL.
+        lx_data = convert_string_to_utf8( ls_form_part-cdata ).
+        lx_body = lx_body && lx_data && lx_crlf.
+      ENDIF.
+
+    ENDLOOP.
+    lx_body = lx_body && lx_dash2 && lx_boundary && lx_dash2 && lx_crlf.
+
+    set_request_header( i_client = i_client i_name = `Content-Type` i_value = `multipart/form-data; boundary=` && lc_boundary && `; charset=utf-8` )  ##NO_TEXT.
+    set_request_body_xdata( i_client = i_client i_data = lx_body ).
+
+  ENDMETHOD.
+
+
+  METHOD get_default_proxy.
+
+  ENDMETHOD.
+
+
+  METHOD get_http_status.
+    DATA: ls_status TYPE ts_http_stat.
+
+    ls_status = i_rest_response->get_status( ).
+    e_status-code   = ls_status-code.
+    e_status-reason = ls_status-reason.
+    TRY.
+        e_status-json   = i_rest_response->get_text( ).
+      CATCH cx_web_message_error.
+        " response may be binary -> ignore
+        e_status-json = ''.
+    ENDTRY.
+  ENDMETHOD.
+
+
+  METHOD get_progname.
+
+*    e_progname = sy-cprog.
+
+  ENDMETHOD.
+
+
+  METHOD get_response_binary.
+
+    e_data = i_response->get_binary( ).
+
+  ENDMETHOD.
+
+
+  METHOD get_response_string.
+
+    e_data = i_response->get_text( ).
+
+  ENDMETHOD.
+
+
+  METHOD get_timezone.
+
+*    e_timezone = sy-zonlo.
+
+  ENDMETHOD.
+
+
+  METHOD set_authentication_basic.
+
+    i_client-request->set_authorization_basic(
+      EXPORTING
+        i_username  = i_username
+        i_password  = i_password
+    ).
+
+  ENDMETHOD.
+
+
+  METHOD set_request_body_cdata.
+
+    i_client-request->set_text( i_text = i_data ).
+
+  ENDMETHOD.
+
+
+  METHOD set_request_body_xdata.
+
+    i_client-request->set_binary( i_data = i_data ).
+
+  ENDMETHOD.
+
+
+  METHOD set_request_header.
+
+    i_client-request->set_header_field( i_name = i_name i_value = i_value ) .
+
+  ENDMETHOD.
+
+
+  METHOD set_request_uri.
+
+    DATA:
+      lo_request TYPE REF TO if_web_http_request.
+
+    i_client-request->set_uri_path( i_uri_path = i_uri ).
+
+  ENDMETHOD.
+ENDCLASS.
