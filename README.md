@@ -1,3 +1,5 @@
+[![CLA assistant](https://cla-assistant.io/readme/badge/watson-developer-cloud/abap-sdk-scp)](https://cla-assistant.io/watson-developer-cloud/abap-sdk-scp)
+
 # ABAP SDK for IBM Watson, using SAP Cloud Platform ABAP Environment
 
 ABAP client library to use the [Watson APIs][wdc]. This is a Community SDK written by ABAPers for the ABAPers in the Open Source community, to provide easy usage of IBM Watson Developer Services in innovation initatives using the SAP Cloud Platform ABAP Environment. It is the choice and responsibility of application developers how this Community SDK is used.
