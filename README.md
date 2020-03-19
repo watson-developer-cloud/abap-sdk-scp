@@ -1,3 +1,5 @@
+[![CLA assistant](https://cla-assistant.io/readme/badge/watson-developer-cloud/abap-sdk-scp)](https://cla-assistant.io/watson-developer-cloud/abap-sdk-scp)
+
 # ABAP SDK for IBM Watson, using SAP Cloud Platform ABAP Environment
 
 ABAP client library to use the [Watson APIs][wdc]. This is a Community SDK written by ABAPers for the ABAPers in the Open Source community, to provide easy usage of IBM Watson Developer Services in innovation initatives using the SAP Cloud Platform ABAP Environment. It is the choice and responsibility of application developers how this Community SDK is used.
@@ -9,16 +11,17 @@ Additionally, as the ABAP SDK is a community release it is not updated with the 
 | [abap-sdk-nwas](https://github.com/watson-developer-cloud/abap-sdk-nwas) | **abap-sdk-scp** |
 |---|---|
 | for SAP NetWeaver AS ABAP 7.50+ | for SAP Cloud Platform ABAP Environment 2002+ |
-| tested on SAP ECC and SAP S/4HANA |  |
+| tested on SAP Business Suite and SAP S/4HANA on-premises edition |  |
 |  | `this repository` |
 
-**Note:**  The ABAP SDK is available and will run in the SAP Cloud Platform ABAP Environment. However, at time of release, the SCP ABAP Env Trial has not been upgraded, therefore will not work at this time. The documentation will be updated, when the SCP ABAP Env Trial has been upgraded.
+**Note:** The SDK can currently only be deployed in non-Trial instances of the SAP Cloud Platform ABAP Environment. It is planned to make a deployment possible in Trial systems as well later this year.
 
 ---
 
 <details>
   <summary>Table of Contents</summary>
 
+  * [Announcements](#announcements)
   * [Before you begin](#before-you-begin)
   * [Installation](#installation)
   * [SSL Certificates](#ssl-certificates)
@@ -32,6 +35,10 @@ Additionally, as the ABAP SDK is a community release it is not updated with the 
   * [Contributors](#contributors)
   * [Acknowledgements](#acknowledgements)
 </details>
+
+## ANNOUNCEMENTS
+### Minor version 0.3.0 released
+Version v0.3.0 of the SDK has been released and includes one breaking change - see what's changed in the [migration guide](MIGRATION-V0.3.0.md).
 
 ## Before you begin
 * You need an [IBM Cloud][ibm_cloud_onboarding] account.
@@ -120,7 +127,7 @@ Using the client library requires two steps:
     exporting
       i_url      = <url>
       i_apikey   = <api key>
-...
+      ...
     importing   
       eo_instance = lo_service_class ).
 ```
