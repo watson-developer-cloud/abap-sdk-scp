@@ -4,6 +4,8 @@
   <asx:values>
    <DEVC>
     <CTEXT>ABAP SDK for IBM Watson</CTEXT>
+    <TPCLASS>X</TPCLASS>
+    <PACKKIND>5</PACKKIND>
    </DEVC>
   </asx:values>
  </asx:abap>

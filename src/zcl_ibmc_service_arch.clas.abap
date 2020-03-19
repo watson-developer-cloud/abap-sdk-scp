@@ -45,12 +45,26 @@ CLASS zcl_ibmc_service_arch DEFINITION
     TYPES ts_access_token TYPE zif_ibmc_service_arch~ts_access_token .
     TYPES ts_request_prop TYPE zif_ibmc_service_arch~ts_request_prop .
 
+    "! <p class="shorttext synchronized" lang="en">Returns the user's time zone.</p>
+    "!
+    "! @parameter E_TIMEZONE | user's time zone
+    "!
     CLASS-METHODS get_timezone
       RETURNING
         VALUE(e_timezone) TYPE zif_ibmc_service_arch~ty_timezone .
+    "! <p class="shorttext synchronized" lang="en">Returns an ABAP module identifier.</p>
+    "!
+    "! @parameter E_PROGNAME | ABAP module identifier
+    "!
     CLASS-METHODS get_progname
       RETURNING
         VALUE(e_progname) TYPE string .
+    "! <p class="shorttext synchronized" lang="en">Decodes base64 encoded data to binary.</p>
+    "!
+    "! @parameter I_BASE64 | Base64-encoded binary
+    "! @parameter E_BINARY | Binary data
+    "! @raising ZCX_IBMC_SERVICE_EXCEPTION | Exception being raised in case of an error.
+    "!
     CLASS-METHODS base64_decode
       IMPORTING
         !i_base64       TYPE string
@@ -58,6 +72,13 @@ CLASS zcl_ibmc_service_arch DEFINITION
         VALUE(e_binary) TYPE xstring
       RAISING
         zcx_ibmc_service_exception .
+    "! <p class="shorttext synchronized" lang="en">Returns a HTTP/REST client based on an URL.</p>
+    "!
+    "! @parameter I_URL | URL
+    "! @parameter I_REQUEST_PROP | Request parameters
+    "! @parameter E_CLIENT | HTTP/REST client
+    "! @raising ZCX_IBMC_SERVICE_EXCEPTION | Exception being raised in case of an error.
+    "!
     CLASS-METHODS create_client_by_url
       IMPORTING
         !i_url          TYPE string
@@ -66,32 +87,68 @@ CLASS zcl_ibmc_service_arch DEFINITION
         !e_client       TYPE ts_client
       RAISING
         zcx_ibmc_service_exception .
+    "! <p class="shorttext synchronized" lang="en">Returns the default proxy host and port.</p>
+    "!
+    "! @parameter I_URL | target URL
+    "! @parameter E_PROXY_HOST | Proxy host
+    "! @parameter E_PROXY_PORT | Proxy port
+    "!
     CLASS-METHODS get_default_proxy
       IMPORTING
         !i_url        TYPE ts_url OPTIONAL
       EXPORTING
         !e_proxy_host TYPE string
         !e_proxy_port TYPE string .
+    "! <p class="shorttext synchronized" lang="en">Sets request header for basic authentication.</p>
+    "!
+    "! @parameter I_CLIENT | HTTP/REST client
+    "! @parameter I_USERNAME | User name
+    "! @parameter I_PASSWORD | Password
+    "!
     CLASS-METHODS set_authentication_basic
       IMPORTING
         !i_client   TYPE ts_client
         !i_username TYPE string
         !i_password TYPE string .
+    "! <p class="shorttext synchronized" lang="en">Sets a HTTP header.</p>
+    "!
+    "! @parameter I_CLIENT | HTTP/REST client
+    "! @parameter I_NAME | Header field name
+    "! @parameter I_VALUE | Header field value
+    "!
     CLASS-METHODS set_request_header
       IMPORTING
         !i_client TYPE ts_client
         !i_name   TYPE string
         !i_value  TYPE string .
+    "! <p class="shorttext synchronized" lang="en">Sets the URI for a HTTP request.</p>
+    "!
+    "! @parameter I_CLIENT | HTTP/REST client
+    "! @parameter I_URI | URI
+    "!
     CLASS-METHODS set_request_uri
       IMPORTING
         !i_client TYPE ts_client
         !i_uri    TYPE string .
+    "! <p class="shorttext synchronized" lang="en">Generates a multi-part request body.</p>
+    "!
+    "! @parameter I_CLIENT | HTTP/REST client
+    "! @parameter IT_FORM_PART | Table of form parts
+    "! @raising ZCX_IBMC_SERVICE_EXCEPTION | Exception being raised in case of an error.
+    "!
     METHODS add_form_part
       IMPORTING
         !i_client     TYPE ts_client
         !it_form_part TYPE zif_ibmc_service_arch~tt_form_part
       RAISING
         zcx_ibmc_service_exception .
+    "! <p class="shorttext synchronized" lang="en">Executes a HTTP request.</p>
+    "!
+    "! @parameter I_CLIENT | HTTP/REST client
+    "! @parameter I_METHOD | HTTP method (GET,POST,PUT,DELETE)
+    "! @parameter E_RESPONSE | Response of the request
+    "! @raising ZCX_IBMC_SERVICE_EXCEPTION | Exception being raised in case of an error.
+    "!
     CLASS-METHODS execute
       IMPORTING
         !i_client         TYPE ts_client
@@ -100,29 +157,71 @@ CLASS zcl_ibmc_service_arch DEFINITION
         VALUE(e_response) TYPE to_rest_response
       RAISING
         zcx_ibmc_service_exception .
+    "! <p class="shorttext synchronized" lang="en">Reads character data from a HTTP response.</p>
+    "!
+    "! @parameter I_RESPONSE | HTTP response
+    "! @parameter E_DATA | Character data
+    "!
     CLASS-METHODS get_response_string
       IMPORTING
         !i_response   TYPE REF TO if_web_http_response
       RETURNING
         VALUE(e_data) TYPE string .
+    "! <p class="shorttext synchronized" lang="en">Set character data for the body of a HTTP request.</p>
+    "!
+    "! @parameter I_CLIENT | HTTP/REST client
+    "! @parameter I_DATA | Character data
+    "!
     CLASS-METHODS set_request_body_cdata
       IMPORTING
         !i_client TYPE ts_client
         !i_data   TYPE string .
+    "! <p class="shorttext synchronized" lang="en">Set binary data for the body of a HTTP request.</p>
+    "!
+    "! @parameter I_CLIENT | HTTP/REST client
+    "! @parameter I_DATA | Binary data
+    "!
     CLASS-METHODS set_request_body_xdata
       IMPORTING
         !i_client TYPE ts_client
         !i_data   TYPE xstring .
+    "! <p class="shorttext synchronized" lang="en">Reads binary data from a HTTP response.</p>
+    "!
+    "! @parameter I_RESPONSE | HTTP response
+    "! @parameter E_DATA | Binary data
+    "!
     CLASS-METHODS get_response_binary
       IMPORTING
         !i_response   TYPE REF TO if_web_http_response
       RETURNING
         VALUE(e_data) TYPE xstring .
+    "! <p class="shorttext synchronized" lang="en">Returns a HTTP response header.</p>
+    "!
+    "! @parameter I_RESPONSE | HTTP/REST response
+    "! @parameter I_HEADER_FIELD | Header field name
+    "! @parameter E_VALUE | Header field value
+    "!
+    CLASS-METHODS get_response_header
+      IMPORTING
+        !i_response type to_rest_response
+        !i_header_field type string
+      RETURNING
+        VALUE(e_value) type string .
+    "! <p class="shorttext synchronized" lang="en">Returns the status of a REST response.</p>
+    "!
+    "! @parameter I_REST_RESPONSE | HTTP/REST response
+    "! @parameter E_STATUS | HTTP status
+    "!
     CLASS-METHODS get_http_status
       IMPORTING
         !i_rest_response TYPE REF TO if_web_http_response
       RETURNING
         VALUE(e_status)  TYPE ts_http_status .
+    "! <p class="shorttext synchronized" lang="en">Converts STRING data to UTF8 encoded XSTRING.</p>
+    "!
+    "! @parameter I_STRING | STRING data
+    "! @parameter E_UTF8 | UTF8-encoded data
+    "!
     CLASS-METHODS convert_string_to_utf8
       IMPORTING
         !i_string     TYPE string
@@ -311,6 +410,13 @@ CLASS zcl_ibmc_service_arch IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_response_header.
+
+    e_value = i_response->get_header_field( i_name = i_header_field ).
+
+  ENDMETHOD.
+
+
   METHOD get_response_string.
 
     e_data = i_response->get_text( ).
@@ -366,3 +472,4 @@ CLASS zcl_ibmc_service_arch IMPLEMENTATION.
 
   ENDMETHOD.
 ENDCLASS.
+
