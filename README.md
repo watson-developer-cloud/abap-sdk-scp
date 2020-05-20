@@ -2,9 +2,9 @@
 
 # ABAP SDK for IBM Watson, using SAP Cloud Platform ABAP Environment
 
-ABAP client library to use the [Watson APIs][wdc]. This is a Community SDK written by ABAPers for the ABAPers in the Open Source community, to provide easy usage of IBM Watson Developer Services in innovation initatives using the SAP Cloud Platform ABAP Environment. It is the choice and responsibility of application developers how this Community SDK is used.
+ABAP client library to use the [IBM Watson APIs][wdc]. This is a Community SDK written by ABAPers for the ABAPers in the Open Source community, to provide easy usage of IBM Watson Developer Services in innovation initatives using the SAP Cloud Platform ABAP Environment. It is the choice and responsibility of application developers how this Community SDK is used.
 
-Additionally, as the ABAP SDK is a community release it is not updated with the same schedule as IBM-supported SDKs. Please see more information in [Questions](#Questions).
+Additionally, as the ABAP SDK is a community release it is not updated with the same schedule as IBM-supported SDKs. Please see more information in [Questions](#questions).
 
 # Choose ABAP SDK release for the applicable ABAP Runtime
 
@@ -373,7 +373,7 @@ This library is licensed under the [Apache 2.0 license][license].
 
 In addition, we would like to thank the [abapGit][abapgit] contributors and the SAP Mentors of this team.
 
-[wdc]: http://www.ibm.com/watson/developercloud/
+[wdc]: https://cloud.ibm.com/docs?tab=api-docs&category=ai
 [ibm_cloud]: https://cloud.ibm.com/
 [ibm_cloud_onboarding]: https://cloud.ibm.com/registration?target=/developer/watson&cm_sp=WatsonPlatform-WatsonServices-_-OnPageNavLink-IBMWatson_SDKs-_-ABAP
 [license]: http://www.apache.org/licenses/LICENSE-2.0
