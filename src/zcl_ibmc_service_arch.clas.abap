@@ -326,52 +326,34 @@ CLASS zcl_ibmc_service_arch IMPLEMENTATION.
 
   METHOD add_form_part.
 
-    CONSTANTS:
-      lc_boundary TYPE string VALUE `--------------------------f530e26f981510ab`  ##NO_TEXT.
-
     DATA:
       ls_form_part TYPE zif_ibmc_service_arch~ts_form_part,
-      lx_data      TYPE xstring,
-      lv_header    TYPE string,
-      lx_header    TYPE xstring,
-      lx_body      TYPE xstring,
-      lx_crlf      TYPE xstring VALUE '0D0A',
-      lx_dash2     TYPE xstring VALUE '2D2D'.
-
-    DATA(lx_boundary) = convert_string_to_utf8( lc_boundary ).
-
-    lx_body = lx_crlf.
+      lo_part TYPE REF TO if_web_http_request.
 
     LOOP AT it_form_part INTO ls_form_part.
 
-      lx_body = lx_body && lx_dash2 && lx_boundary && lx_crlf.
+      lo_part = i_client-request->add_multipart( ).
 
       IF NOT ls_form_part-content_type IS INITIAL.
-        lv_header = `Content-Type: ` && ls_form_part-content_type.
-        lx_header = convert_string_to_utf8( lv_header ).
-        lx_body = lx_body && lx_header && lx_crlf.
+        lo_part->set_header_field( i_name = `Content-Type` i_value = ls_form_part-content_type )  ##NO_TEXT.
       ENDIF.
+
       IF NOT ls_form_part-content_disposition IS INITIAL.
-        lv_header = `Content-Disposition: ` && ls_form_part-content_disposition  ##NO_TEXT.
+        lo_part->set_header_field( i_name = `Content-Disposition` i_value = ls_form_part-content_disposition )  ##NO_TEXT.
       ELSE.
-        lv_header = `Content-Disposition: form-data; name="unnamed"`  ##NO_TEXT.
+        lo_part->set_header_field( i_name = `Content-Disposition` i_value = `form-data; name="unnamed"` )  ##NO_TEXT.
       ENDIF.
-      lx_header = convert_string_to_utf8( lv_header ).
-      lx_body = lx_body && lx_header && lx_crlf && lx_crlf.
+
       IF NOT ls_form_part-xdata IS INITIAL.
-        lx_body = lx_body && ls_form_part-xdata && lx_crlf.
-        DATA(lc_data) = cl_web_http_utility=>encode_x_base64( unencoded = ls_form_part-xdata ).
+        data(lv_length) = xstrlen( ls_form_part-xdata ).
+        lo_part->set_binary( i_data = ls_form_part-xdata i_offset = 0 i_length = lv_length ).
       ENDIF.
+
       IF NOT ls_form_part-cdata IS INITIAL.
-        lx_data = convert_string_to_utf8( ls_form_part-cdata ).
-        lx_body = lx_body && lx_data && lx_crlf.
+        lo_part->set_text( i_text = ls_form_part-cdata ).
       ENDIF.
 
     ENDLOOP.
-    lx_body = lx_body && lx_dash2 && lx_boundary && lx_dash2 && lx_crlf.
-
-    set_request_header( i_client = i_client i_name = `Content-Type` i_value = `multipart/form-data; boundary=` && lc_boundary && `; charset=utf-8` )  ##NO_TEXT.
-    set_request_body_xdata( i_client = i_client i_data = lx_body ).
 
   ENDMETHOD.
 
